@@ -1,5 +1,5 @@
 
-# FunctionWise
+# FunctionWise - The Calculator for Learners, powered by AI.
 
 A calculator that shows its work. Instead of just handing you an answer, FunctionWise gives you the answer and then explains why it works, step by step, so you actually learn the idea behind it.
 
