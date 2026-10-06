@@ -123,3 +123,9 @@ Keep that terminal open while you use FunctionWise, then refresh the page.
 ## Credits
 
 Built with [Ollama](https://ollama.com) and [Qwen3](https://qwenlm.github.io/) by the Qwen team.
+
+## About Linked AI
+
+Linked AI is a project exploring the capabilities of artificial intelligence and beyond.
+
+We build, test, and open-source experiments across AI, intelligent systems, APIs, and emerging technology.
