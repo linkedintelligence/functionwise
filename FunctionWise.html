@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FunctionWise - Math, Learned.</title>
+<style>
+:root{--paper:#f4f7fb;--grid:#d9e3f0;--ink:#1d2b53;--soft:#5b6b8c;--card:#ffffff;--hi:#ffe66d;--key:#e8eef8;--op:#c9d8f5;--go:#1d2b53;--gofg:#fff;--err:#b3261e;--line:#c5d2e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#121a2e;--grid:#1c2742;--ink:#e8eefc;--soft:#93a3c5;--card:#18233d;--hi:#ffd84d;--key:#223153;--op:#2f4272;--go:#ffd84d;--gofg:#121a2e;--err:#ff8a80;--line:#2c3b60}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:24px 14px 60px}
+main{max-width:980px;margin:0 auto}
+header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+h1{font:700 2.1rem/1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.02em}
+h1 span{background:linear-gradient(transparent 55%,var(--hi) 55%);padding:0 .1em}
+.tag{color:var(--soft);font-size:.95rem;margin:4px 0 0}
+.status{font-size:.85rem;color:var(--soft);display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;background:#aaa}
+.dot.ok{background:#2fb36b}.dot.bad{background:var(--err)}
+.layout{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px;box-shadow:5px 5px 0 var(--ink)}
+#q{width:100%;font:600 1.25rem Georgia,serif;color:var(--ink);background:transparent;border:0;border-bottom:2px solid var(--line);padding:8px 2px;outline:0}
+#q:focus{border-color:var(--ink)}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.keys button{font:600 1.15rem Georgia,serif;padding:12px 0;border:2px solid var(--ink);border-radius:10px;background:var(--key);color:var(--ink);cursor:pointer;transition:transform .08s}
+.keys button:active{transform:translateY(2px)}
+.keys .op{background:var(--op)}
+.keys button:focus-visible,.chip:focus-visible,#go:focus-visible,summary:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+#go{grid-column:1/-1;background:var(--go);color:var(--gofg);font:700 1.05rem system-ui,sans-serif;padding:14px}
+#go:disabled{opacity:.6;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.chip{border:1.5px dashed var(--soft);background:transparent;color:var(--soft);border-radius:99px;padding:4px 11px;font-size:.85rem;cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--ink)}
+.ans{font:700 2.6rem/1.1 Georgia,serif;word-break:break-word;margin:0 0 4px}
+.ans small{display:block;font:500 .85rem system-ui;color:var(--soft);margin-bottom:6px}
+.badge{display:inline-block;font-size:.78rem;border-radius:99px;padding:2px 10px;background:var(--hi);color:#1d2b53;margin-bottom:10px}
+#why{margin-top:12px;border-top:2px solid var(--line);padding-top:12px;min-height:90px}
+#why p{margin:.5em 0}#why code{background:var(--key);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:.92em}
+#why .step{border-left:4px solid var(--hi);padding-left:10px;margin:.6em 0}
+.empty{color:var(--soft)}
+.err{color:var(--err);font-weight:600}
+.cursor::after{content:"▍";animation:b 1s steps(2) infinite;color:var(--soft)}
+@keyframes b{50%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.cursor::after{animation:none}}
+details{margin-top:16px;font-size:.9rem;color:var(--soft)}
+details input{font:inherit;padding:6px 8px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:100%;margin:4px 0 10px}
+.help{background:var(--key);border-radius:10px;padding:10px 12px;margin-top:8px}
+.help code{font-family:ui-monospace,Menlo,monospace}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>Function<span>Wise</span></h1>
+    <p class="tag">The calculator for learners</p>
+  </div>
+  <div class="status"><span class="dot" id="dot"></span><span id="stxt">checking Ollama...</span></div>
+</header>
+
+<div class="layout">
+  <section class="panel" aria-label="Calculator">
+    <input id="q" placeholder="Type a problem, e.g. 12*(3+4)" autocomplete="off" spellcheck="false" aria-label="Math problem">
+    <div class="keys" id="keys"></div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <section class="panel" aria-live="polite">
+    <div id="out"><p class="empty">Your answer and the explanation will show up here. Try typing a problem, or tap one of the examples.</p></div>
+  </section>
+</div>
+
+<details id="set">
+  <summary>Settings and troubleshooting</summary>
+  <label>Ollama address<input id="host" value="http://localhost:11434"></label>
+  <label>Model<input id="model" value="qwen3:0.6b"></label>
+  <div class="help">
+    First time? Install <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a>, then run <code>ollama pull qwen3:0.6b</code> in a terminal. If the dot above stays red, start Ollama with <code>OLLAMA_ORIGINS="*" ollama serve</code> so your browser is allowed to talk to it.
+  </div>
+</details>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const q=$('q'),out=$('out'),dot=$('dot'),stxt=$('stxt');
+let busy=false;
+
+/* keypad */
+const layout=['C','(',')','÷','7','8','9','×','4','5','6','-','1','2','3','+','0','.','^','⌫'];
+layout.forEach(k=>{const b=document.createElement('button');b.textContent=k;b.type='button';
+  if('C()÷×-+^⌫'.includes(k))b.className='op';
+  b.onclick=()=>{k==='C'?q.value='':k==='⌫'?q.value=q.value.slice(0,-1):q.value+=k;q.focus()};
+  $('keys').appendChild(b)});
+const go=document.createElement('button');go.id='go';go.type='button';go.textContent='Explain it';go.onclick=run;$('keys').appendChild(go);
+['(12+8)/4^2','sqrt(144)+5*3','solve 3x+5=20','what is 15% of 80'].forEach(t=>{
+  const c=document.createElement('button');c.className='chip';c.type='button';c.textContent=t;
+  c.onclick=()=>{q.value=t;run()};$('chips').appendChild(c)});
+q.addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+
+/* safe arithmetic parser (no eval) */
+function calc(src){
+  const t=src.toLowerCase().replace(/×/g,'*').replace(/÷/g,'/').replace(/\*\*/g,'^').replace(/[−–]/g,'-').replace(/\s+/g,'');
+  if(!t)throw 0;
+  let i=0;const pk=()=>t[i];
+  const fn={sqrt:Math.sqrt,sin:x=>Math.sin(x*Math.PI/180),cos:x=>Math.cos(x*Math.PI/180),tan:x=>Math.tan(x*Math.PI/180),ln:Math.log,log:Math.log10,abs:Math.abs};
+  function atom(){
+    if(pk()==='('){i++;const v=add();if(pk()!==')')throw 0;i++;return v}
+    if(pk()==='-'){i++;return -pow()}
+    if(pk()==='+'){i++;return atom()}
+    const f=/^(sqrt|sin|cos|tan|ln|log|abs)\(/.exec(t.slice(i));
+    if(f){i+=f[0].length;const v=add();if(pk()!==')')throw 0;i++;return fn[f[1]](v)}
+    if(t.startsWith('pi',i)){i+=2;return Math.PI}
+    const m=/^(\d+\.?\d*|\.\d+)(e[+-]?\d+)?/.exec(t.slice(i));if(!m)throw 0;i+=m[0].length;return parseFloat(m[0]);
+  }
+  function post(){let v=atom();while(pk()==='%'){i++;v/=100}return v}
+  function pow(){const b=post();if(pk()==='^'){i++;const e=pk()==='-'?(i++,-pow()):pow();return Math.pow(b,e)}return b}
+  function mul(){let v=pow();while(pk()==='*'||pk()==='/'){const o=t[i++];const r=pow();v=o==='*'?v*r:v/r}return v}
+  function add(){let v=mul();while(pk()==='+'||pk()==='-'){const o=t[i++];const r=mul();v=o==='+'?v+r:v-r}return v}
+  const r=add();if(i!==t.length||!isFinite(r))throw 0;return r;
+}
+const fmt=n=>Number.isInteger(n)?String(n):String(+n.toFixed(10));
+
+/* tiny safe markdown */
+function md(s){
+  const e=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return e.split(/\n{2,}|\n(?=Step|\d+\.)/).filter(x=>x.trim()).map(p=>{
+    p=p.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/\n/g,'<br>');
+    return /^(<strong>)?(Step|\d+\.)/.test(p)?`<div class="step">${p}</div>`:`<p>${p}</p>`}).join('');
+}
+
+/* ollama */
+const host=()=>$('host').value.replace(/\/$/,'');
+async function ping(){
+  try{
+    const r=await fetch(host()+'/api/tags');const d=await r.json();
+    const has=(d.models||[]).some(m=>m.name.startsWith($('model').value.split(':')[0]));
+    dot.className='dot '+(has?'ok':'bad');
+    stxt.textContent=has?'Ollama ready':'Ollama is on, but model not pulled yet';
+    return has;
+  }catch(e){dot.className='dot bad';stxt.textContent='Can\'t reach Ollama';return false}
+}
+$('host').onchange=$('model').onchange=ping;ping();
+
+async function run(){
+  const text=q.value.trim();if(!text||busy)return;
+  busy=true;$('go').disabled=true;
+  let exact=null;try{exact=calc(text)}catch(e){}
+  const sys="You are FunctionWise, a warm, clear math tutor for a student. Never be vague. Keep it short: 3 to 5 numbered steps, each with one sentence on WHY it works (name the rule, like order of operations or inverse operations). Plain text, no LaTeX. End with one line starting 'Try this:' giving a similar practice problem with no answer.";
+  const user=exact!==null
+    ?`Problem: ${text}\nThe verified answer is ${fmt(exact)}. Do not change it. Explain step by step why this is the answer. /no_think`
+    :`Problem: ${text}\nFirst line must be 'Answer: <result>'. Then explain step by step why it works. /no_think`;
+  let head=exact!==null?`<p class="ans"><small>${text.replace(/</g,'&lt;')} =</small>${fmt(exact)}</p><span class="badge">checked by the calculator</span>`:`<span class="badge">worked out by the model, double-check it</span>`;
+  out.innerHTML=head+'<div id="why" class="cursor"></div>';
+  const why=$('why');let acc='';
+  try{
+    const r=await fetch(host()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:$('model').value,stream:true,think:false,options:{temperature:.3},messages:[{role:'system',content:sys},{role:'user',content:user}]})});
+    if(!r.ok)throw new Error(r.status===404?'Model not found. Run: ollama pull '+$('model').value:'Ollama said '+r.status);
+    const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+    while(true){
+      const {done,value}=await rd.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
+      for(const l of lines){if(!l.trim())continue;try{const j=JSON.parse(l);if(j.message&&j.message.content){acc+=j.message.content;
+        const clean=acc.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim();why.innerHTML=md(clean)}}catch(e){}}
+    }
+    why.classList.remove('cursor');
+    if(!acc.trim())why.innerHTML='<p class="empty">The model returned nothing. Try rephrasing.</p>';
+  }catch(e){
+    why.classList.remove('cursor');
+    why.innerHTML='<p class="err">'+(e.message&&!/fetch/i.test(e.message)?e.message:'Couldn\'t reach Ollama. Open Settings below for the fix.')+'</p>'
+      +(exact!==null?'<p class="empty">The answer above is still right, it just comes without the explanation.</p>':'');
+    if(/fetch/i.test(e.message||'')||!e.message)$('set').open=true;
+    ping();
+  }
+  busy=false;$('go').disabled=false;
+}
+</script>
+</body>
+</html>
